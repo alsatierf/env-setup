@@ -1,0 +1,6 @@
+---
+- name: Install flatpak
+  package:
+    name: flatpak
+    state: present
+  become: yes
