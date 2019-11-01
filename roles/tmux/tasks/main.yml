@@ -1,0 +1,6 @@
+---
+- name: Install tmux
+  snap:
+    name: tmux
+    classic: yes
+  become: yes

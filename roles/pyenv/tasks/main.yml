@@ -1,0 +1,35 @@
+---
+- name: Import Red Hat / CentOS tasks
+  import_tasks: redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Get home path
+  command: echo ~
+  register: home_path
+  changed_when: false
+
+- name: Check if $HOME/.pyenv/.git folder exists
+  stat:
+    path: "{{ home_path.stdout }}/.pyenv/.git"
+  register: pyenv_git
+
+- name: Update pyenv project
+  git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: "{{ home_path.stdout }}/.pyenv/"
+  when: pyenv_git.stat.exists
+
+- block:
+  - name: Get pyenv install script
+    get_url: 
+      url: https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer
+      dest: /tmp/pyenv-installer
+
+  - name: Install pyenv project
+    command: "$SHELL /tmp/pyenv-installer"
+  when: not pyenv_git.stat.exists
+
+- name: Get pyenv-virtualenv project
+  git:
+    repo: https://github.com/pyenv/pyenv-virtualenv.git
+    dest: "{{ home_path.stdout }}/.pyenv/plugins/pyenv-virtualenv"

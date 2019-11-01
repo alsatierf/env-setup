@@ -1,0 +1,30 @@
+---
+- name: Check current git version
+  shell: git --version | sed -r 's/.*([0-9]+)\.([0-9]+)\.([0-9]+).*/\1.\2.\3/'
+  register: git_version
+  changed_when: false
+
+# - name: Git version
+#   debug:
+#     msg: "{{ git_version.stdout }}"
+
+- block:
+  - name: Install CentOS 7 IUS Release
+    package:
+      name: https://centos7.iuscommunity.org/ius-release.rpm 
+      state: present
+    
+  - name: Remove git 1.X
+    package:
+      name: git
+      state: absent
+
+  - name: Install new git version
+    package:
+      name: git2u-all
+      state: present 
+  when:
+  - ansible_os_family == 'RedHat'
+  - ansible_distribution_version | int == 7
+  - git_version.stdout.split(".")[0] | int < 2
+  become: yes

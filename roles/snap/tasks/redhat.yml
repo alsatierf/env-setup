@@ -1,0 +1,8 @@
+---
+- name: Install common dev repositories, tools and packages
+  package:
+    name: 
+    - epel-release
+    - snapd
+    state: present
+  become: yes

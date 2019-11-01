@@ -1,0 +1,20 @@
+---
+- name: Get home path
+  command: echo ~
+  register: home_path
+  changed_when: false
+
+- name: "Ensure directory {{ home_path.stdout }}/.local/bin exists"
+  file:
+    path: "{{ home_path.stdout }}/.local/bin"
+    state: directory
+
+- name: Install neovim
+  get_url:
+    url: https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage
+    dest: "{{ home_path.stdout }}/.local/bin/nvim"
+
+- name: Give execution permission
+  file:
+    path: "{{ home_path.stdout }}/.local/bin/nvim"
+    mode: u+x

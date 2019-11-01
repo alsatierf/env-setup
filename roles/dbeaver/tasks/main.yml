@@ -1,0 +1,6 @@
+---
+- name: Install DBeaver database tool
+  snap:
+    name: dbeaver-ce
+    channel: latest/edge
+  become: yes

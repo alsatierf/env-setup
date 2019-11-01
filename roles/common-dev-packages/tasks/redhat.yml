@@ -1,0 +1,8 @@
+- name: Install common dev repositories, tools and packages
+  package:
+    name: 
+    - "@Development tools"
+    - epel-release
+    state: present
+    skip_broken: yes
+  become: yes

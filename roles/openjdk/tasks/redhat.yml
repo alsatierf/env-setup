@@ -1,0 +1,18 @@
+---
+- block:
+  - name: "Install JRE ({{ java_version }}) and JDK ({{ java_version }}-devel) from OpenJDK"
+    import_role:
+      name: geerlingguy.java
+    vars:
+      java_packages:
+      - "{{ java_version }}"
+      - "{{ java_version }}-devel"
+
+  - name: "Set update-alternatives to point to the correct java version to {{ java_version }}.x86_64"
+    command: "update-alternatives --set java {{ java_version }}.x86_64"
+
+  - name: "Set update-alternatives to point to the correct javac version to {{ java_version }}.x86_64"
+    command: "update-alternatives --set javac {{ java_version }}.x86_64"
+  vars:
+    java_version: java-1.8.0-openjdk
+  become: yes
