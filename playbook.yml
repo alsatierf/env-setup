@@ -1,0 +1,114 @@
+---
+- hosts: localhost
+  tasks:
+  - block: ## Common Dev Packages ##
+    - name: Install common dev tools and packages
+      package:
+        name: 
+        - "@Development tools"
+        state: present
+        skip_broken: yes
+    when: ansible_os_family == 'RedHat'
+    become: yes
+    tags: ["dev-common"]
+
+  - block:
+    - name: Install CentOS 7 IUS Release
+      package:
+        name: https://centos7.iuscommunity.org/ius-release.rpm 
+        state: present
+    
+    - name: Remove old git version
+      package:
+        name: git
+        state: absent
+
+    - name: Install new git version
+      package:
+        name: git2u-all
+        state: present 
+    when: ansible_os_family == 'RedHat'
+    become: yes
+    tags: ["git"] 
+
+  - block: ## OpenJDK ##
+    - name: "Install JRE ({{ java_version }}) and JDK ({{ java_version }}-devel) from OpenJDK"
+      include_role:
+        name: geerlingguy.java
+      vars:
+        java_packages:
+        - "{{ java_version }}"
+        - "{{ java_version }}-devel"
+
+    - name: "Set update-alternatives to point to the correct java version to {{ java_version }}.x86_64"
+      command: "update-alternatives --set java {{ java_version }}.x86_64"
+
+    - name: "Set update-alternatives to point to the correct javac version to {{ java_version }}.x86_64"
+      command: "update-alternatives --set javac {{ java_version }}.x86_64"
+
+    - name: Set java environment variables
+      blockinfile:
+        insertafter: EOF
+        path: /etc/profile.d/openjdk.sh
+        block: |
+          export JAVA_HOME=$(dirname $(dirname $(readlink $(readlink $(which javac)))))
+          export PATH=$PATH:$JAVA_HOME/bin
+          export CLASSPATH=.:$JAVA_HOME/jre/lib:$JAVA_HOME/lib:$JAVA_HOME/lib/tools.jar
+        create: yes
+    when: ansible_os_family == 'RedHat'
+    vars:
+      java_version: java-1.8.0-openjdk
+    become: yes
+    tags: ["openjdk"]
+
+  - block: ## Pyenv and Pyenv Virtualenv Wrapper ##
+    # - name: Install required packages
+    #   package:
+    #     name: 
+    #     - zlib-devel
+    #     - libcurl-devel
+    #     - bzip2
+    #     - bzip2-devel
+    #     - readline-devel
+    #     - sqlite
+    #     - sqlite-devel
+    #     - openssl-devel
+    #     - xz
+    #     - xz-devel
+    #     - libffi-devel
+    #     - findutils
+    #     state: present
+    #     skip_broken: yes
+    #   become: yes
+
+    - name: Get home path
+      local_action: command echo ~
+      register: home_path
+
+    - name: Check if $HOME/.pyenv/.git folder exists
+      stat:
+        path: "{{ home_path.stdout }}/.pyenv/.git"
+      register: pyenv_git
+
+    - block:
+      - name: Get pyenv install script
+        get_url: 
+          url: https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer
+          dest: /tmp/pyenv-installer
+
+      - name: Install pyenv
+        command: "$SHELL /tmp/pyenv-installer"
+      when: not pyenv_git.stat.exists
+
+    - name: Update pyenv project if it already exists
+      git:
+        repo: https://github.com/pyenv/pyenv.git
+        dest: "{{ home_path.stdout }}/.pyenv/"
+      when: pyenv_git.stat.exists
+
+    - name: Get pyenv-virtualenv project
+      git:
+        repo: https://github.com/pyenv/pyenv-virtualenv.git
+        dest: "{{ home_path.stdout }}/.pyenv/plugins/pyenv-virtualenv"
+    when: ansible_os_family == 'RedHat'
+    tags: ["pyenv"]
