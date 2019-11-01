@@ -62,24 +62,24 @@
     tags: ["openjdk"]
 
   - block: ## Pyenv and Pyenv Virtualenv Wrapper ##
-    # - name: Install required packages
-    #   package:
-    #     name: 
-    #     - zlib-devel
-    #     - libcurl-devel
-    #     - bzip2
-    #     - bzip2-devel
-    #     - readline-devel
-    #     - sqlite
-    #     - sqlite-devel
-    #     - openssl-devel
-    #     - xz
-    #     - xz-devel
-    #     - libffi-devel
-    #     - findutils
-    #     state: present
-    #     skip_broken: yes
-    #   become: yes
+    - name: Install required packages
+      package:
+        name: 
+        - zlib-devel
+        - libcurl-devel
+        - bzip2
+        - bzip2-devel
+        - readline-devel
+        - sqlite
+        - sqlite-devel
+        - openssl-devel
+        - xz
+        - xz-devel
+        - libffi-devel
+        - findutils
+        state: present
+        skip_broken: yes
+      become: yes
 
     - name: Get home path
       local_action: command echo ~
