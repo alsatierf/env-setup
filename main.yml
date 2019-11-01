@@ -10,6 +10,10 @@
     tags: ["snap"]
 
   - import_role:
+      name: flatpak
+    tags: ["flatpak"]
+
+  - import_role:
       name: git
     tags: ["git"]
 
